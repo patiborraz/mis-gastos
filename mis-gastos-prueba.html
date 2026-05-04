@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mis Gastos</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --income: #00B894;
+    --expense: #E17055;
+    --bg: #F0EFF5;
+    --text: #2D3436;
+    --muted: #636E72;
+    --light: #F8F7FF;
+    --border: #E8E6F0;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 2rem; }
+
+  .header { background: linear-gradient(135deg, #6C5CE7, #a29bfe); padding: 2rem 1.5rem 3.5rem; color: white; }
+  .header h1 { font-size: 1.6rem; font-weight: 700; }
+  .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 0.2rem; }
+
+  .balance-card { background: white; border-radius: 20px; padding: 1.25rem 1.5rem; margin: -2rem 1rem 0; box-shadow: 0 8px 30px rgba(108,92,231,0.15); position: relative; z-index: 10; }
+  .balance-label { font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+  .balance-amount { font-size: 2.2rem; font-weight: 700; margin: 0.2rem 0 1rem; }
+  .balance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .balance-item { border-radius: 12px; padding: 0.75rem 1rem; }
+  .balance-item.income { background: #E8F8F5; }
+  .balance-item.expense { background: #FDF0EC; }
+  .balance-item label { font-size: 0.7rem; color: var(--muted); display: block; }
+  .balance-item span { font-size: 1.15rem; font-weight: 700; display: block; margin-top: 0.2rem; }
+  .balance-item.income span { color: var(--income); }
+  .balance-item.expense span { color: var(--expense); }
+
+  .tabs { display: flex; margin: 1.5rem 1rem 0; background: white; border-radius: 14px; padding: 4px; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .tab { flex: 1; padding: 0.65rem; border-radius: 10px; border: none; background: transparent; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .tab.active { background: var(--primary); color: white; }
+
+  .section { padding: 1.25rem 1rem 0; display: none; }
+  .section.active { display: block; }
+
+  .status-bar { border-radius: 12px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; background: white; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot.ok { background: var(--income); }
+  .dot.err { background: var(--expense); }
+  .dot.wait { background: #F9CA24; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  .tipo-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .tipo-btn { padding: 0.8rem; border-radius: 12px; border: 2px solid var(--border); background: white; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--muted); }
+  .tipo-btn.ae { border-color: var(--expense); background: #FDF0EC; color: var(--expense); }
+  .tipo-btn.ai { border-color: var(--income); background: #E8F8F5; color: var(--income); }
+
+  .form-group { margin-bottom: 1.1rem; }
+  .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input { width: 100%; padding: 0.85rem 1rem; border: 1.5px solid var(--border); border-radius: 12px; font-size: 1rem; background: white; color: var(--text); outline: none; }
+  .form-group input:focus { border-color: var(--primary); }
+  .aw { position: relative; }
+  .aw span { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--muted); }
+  .aw input { padding-left: 2rem; }
+
+  .cats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+  .cat-btn { padding: 0.65rem 0.3rem; border-radius: 12px; border: 1.5px solid var(--border); background: white; text-align: center; cursor: pointer; }
+  .cat-btn .icon { font-size: 1.3rem; display: block; }
+  .cat-btn .name { font-size: 0.62rem; color: var(--muted); display: block; margin-top: 0.2rem; }
+  .cat-btn.sel { border-color: var(--primary); background: var(--light); }
+  .cat-btn.sel .name { color: var(--primary); font-weight: 600; }
+
+  .btn { width: 100%; padding: 1rem; border: none; border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 0.75rem; color: white; }
+  .btn-primary { background: var(--primary); }
+  .btn-secondary { background: var(--muted); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .record-item { background: white; border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.85rem; }
+  .ri { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .ri.gasto { background: #FDF0EC; }
+  .ri.ingreso { background: #E8F8F5; }
+  .rinfo { flex: 1; min-width: 0; }
+  .rinfo h4 { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rinfo p { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+  .ramount { font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
+  .ramount.gasto { color: var(--expense); }
+  .ramount.ingreso { color: var(--income); }
+
+  .csi { background: white; border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; }
+  .csi-h { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+  .csi-h span:first-child { font-size: 0.88rem; font-weight: 600; }
+  .csi-h span:last-child { font-size: 0.88rem; font-weight: 700; color: var(--expense); }
+  .pb { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .pf { height: 100%; background: var(--primary); border-radius: 3px; }
+
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+  .empty .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: #2D3436; color: white; padding: 0.75rem 1.5rem; border-radius: 50px; font-size: 0.85rem; font-weight: 500; transition: transform 0.3s; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.ok { background: var(--income); }
+  .toast.err { background: var(--expense); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Mis Gastos</h1>
+  <p id="fecha"></p>
+</div>
+
+<div class="balance-card">
+  <div class="balance-label">Balance del mes</div>
+  <div class="balance-amount" id="balance">0,00 €</div>
+  <div class="balance-row">
+    <div class="balance-item income"><label>Ingresos</label><span id="ingresos">0,00 €</span></div>
+    <div class="balance-item expense"><label>Gastos</label><span id="gastos">0,00 €</span></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('agregar',this)">Agregar</button>
+  <button class="tab" onclick="showTab('historial',this)">Historial</button>
+  <button class="tab" onclick="showTab('resumen',this)">Resumen</button>
+</div>
+
+<div class="section active" id="tab-agregar">
+  <div class="status-bar"><div class="dot wait" id="sdot"></div><span id="stxt">Conectando con Google Sheets...</span></div>
+  <div class="tipo-toggle">
+    <button class="tipo-btn ae" id="bt-g" onclick="setTipo('gasto')">Gasto</button>
+    <button class="tipo-btn" id="bt-i" onclick="setTipo('ingreso')">Ingreso</button>
+  </div>
+  <div class="form-group">
+    <label>Importe (€)</label>
+    <div class="aw"><span>€</span><input type="number" id="importe" placeholder="0,00" step="0.01" min="0"></div>
+  </div>
+  <div class="form-group">
+    <label>Descripción</label>
+    <input type="text" id="desc" placeholder="Ej: Cena con amigos, Gasolina...">
+  </div>
+  <div class="form-group" id="grp-cat">
+    <label>Categoría</label>
+    <div class="cats-grid" id="cats"></div>
+  </div>
+  <button class="btn btn-primary" id="btn-save" onclick="guardar()">Guardar registro</button>
+</div>
+
+<div class="section" id="tab-historial">
+  <button class="btn btn-secondary" onclick="cargar()" style="margin-bottom:1rem;">🔄 Actualizar desde Sheets</button>
+  <div id="hist"></div>
+</div>
+
+<div class="section" id="tab-resumen">
+  <div id="resumen"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwBiB1ABtwE2tmP9NkZfGltyZo86HIVryZhwO4tOSS6yflMb_NBlwCItmoAPmPPm_ItMg/exec';
+const KEY = 'MI CLAVE SECRETA PRUEBA API GASTOS 26';
+
+const CATS = [
+  {id:'restaurantes',icon:'🍽️',name:'Restaurantes'},
+  {id:'viajes',icon:'✈️',name:'Viajes'},
+  {id:'gasolina',icon:'⛽',name:'Gasolina'},
+  {id:'salud',icon:'🏥',name:'Salud'},
+  {id:'entretenimiento',icon:'🎬',name:'Entretenimiento'},
+  {id:'belleza',icon:'💄',name:'Belleza'},
+  {id:'ropa',icon:'👕',name:'Ropa'},
+  {id:'tabaco',icon:'🚬',name:'Tabaco'},
+  {id:'supermercado',icon:'🛒',name:'Supermercado'},
+  {id:'hogar',icon:'🏠',name:'Hogar'},
+  {id:'suscripciones',icon:'📱',name:'Suscripciones'},
+  {id:'otros',icon:'💡',name:'Otros'},
+];
+
+let tipo = 'gasto', cat = '', registros = JSON.parse(localStorage.getItem('gv3')||'[]');
+
+document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+renderCats(); actualizarBalance(); cargar();
+
+function status(t, msg) {
+  document.getElementById('sdot').className = 'dot ' + t;
+  document.getElementById('stxt').textContent = msg;
+}
+
+function fmt(n) { return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(n); }
+
+function renderCats() {
+  document.getElementById('cats').innerHTML = CATS.map(c=>`
+    <button class="cat-btn ${cat===c.id?'sel':''}" onclick="selCat('${c.id}')">
+      <span class="icon">${c.icon}</span><span class="name">${c.name}</span>
+    </button>`).join('');
+}
+
+function selCat(id) { cat = id; renderCats(); }
+
+function setTipo(t) {
+  tipo = t;
+  document.getElementById('bt-g').className = 'tipo-btn' + (t==='gasto'?' ae':'');
+  document.getElementById('bt-i').className = 'tipo-btn' + (t==='ingreso'?' ai':'');
+  document.getElementById('grp-cat').style.display = t==='gasto'?'block':'none';
+}
+
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='historial') renderHist();
+  if(id==='resumen') renderResumen();
+}
+
+function actualizarBalance() {
+  const ahora = new Date();
+  const mes = registros.filter(r=>{const d=new Date(r.fecha);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();});
+  const g = mes.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+parseFloat(r.importe),0);
+  const i = mes.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+parseFloat(r.importe),0);
+  const b = i - g;
+  document.getElementById('gastos').textContent = fmt(g);
+  document.getElementById('ingresos').textContent = fmt(i);
+  const el = document.getElementById('balance');
+  el.textContent = fmt(b);
+  el.style.color = b>=0?'#00B894':'#E17055';
+}
+
+async function api(params) {
+  const url = new URL(API);
+  url.searchParams.set('api_key', KEY);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const r = await fetch(url.toString());
+  return r.json();
+}
+
+async function guardar() {
+  const importe = parseFloat(document.getElementById('importe').value);
+  const desc = document.getElementById('desc').value.trim();
+  if (!importe || importe<=0) return toast('Introduce un importe válido','err');
+  if (tipo==='gasto' && !cat) return toast('Selecciona una categoría','err');
+  const c = CATS.find(x=>x.id===cat);
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  status('wait','Enviando a Google Sheets...');
+  try {
+    const res = await api({action:'create', tipo, categoria: c?c.name:'Ingreso', descripcion: desc||(c?c.name:'Ingreso'), importe, fecha: new Date().toISOString().split('T')[0]});
+    if (res.success) {
+      registros.unshift({id:res.id||Date.now(), fecha:new Date().toISOString(), tipo, categoria:c?c.name:'Ingreso', icon:c?c.icon:'💰', descripcion:desc||(c?c.name:'Ingreso'), importe});
+      localStorage.setItem('gv3', JSON.stringify(registros));
+      actualizarBalance();
+      status('ok','✓ Conectado a Google Sheets');
+      toast('✓ Guardado en Google Sheets','ok');
+      document.getElementById('importe').value='';
+      document.getElementById('desc').value='';
+      cat=''; renderCats();
+    } else throw new Error(res.error);
+  } catch(e) {
+    status('err','Error de conexión con Sheets');
+    toast('Error: '+e.message,'err');
+  }
+  btn.disabled=false; btn.textContent='Guardar registro';
+}
+
+async function cargar() {
+  status('wait','Cargando datos...');
+  try {
+    const res = await api({action:'read'});
+    if (res.success && res.records) {
+      registros = res.records.map(r=>({
+        id:r.ID, fecha:r.Fecha, tipo:r.Tipo,
+        categoria:r.Categoria,
+        icon: CATS.find(c=>c.name===r.Categoria)?.icon||'💡',
+        descripcion:r.Descripcion,
+        importe:parseFloat(r.Importe)||0
+      }));
+      localStorage.setItem('gv3', JSON.stringify(registros));
+      actualizarBalance();
+      status('ok','✓ Conectado a Google Sheets');
+      toast('✓ Datos cargados','ok');
+    } else throw new Error(res.error);
+  } catch(e) {
+    status('err','Sin conexión — mostrando datos locales');
+  }
+}
+
+function renderHist() {
+  const el = document.getElementById('hist');
+  if (!registros.length) { el.innerHTML=`<div class="empty"><div class="icon">📋</div><p>Aún no hay registros.</p></div>`; return; }
+  el.innerHTML = registros.map(r=>`
+    <div class="record-item">
+      <div class="ri ${r.tipo}">${r.icon||'💸'}</div>
+      <div class="rinfo"><h4>${r.descripcion}</h4><p>${r.categoria} · ${new Date(r.fecha).toLocaleDateString('es-ES')}</p></div>
+      <div class="ramount ${r.tipo}">${r.tipo==='gasto'?'-':'+'}${fmt(r.importe)}</div>
+    </div>`).join('');
+}
+
+function renderResumen() {
+  const el = document.getElementById('resumen');
+  const gs = registros.filter(r=>r.tipo==='gasto');
+  if (!gs.length) { el.innerHTML=`<div class="empty"><div class="icon">📊</div><p>No hay gastos todavía.</p></div>`; return; }
+  const pc={};
+  gs.forEach(r=>{ if(!pc[r.categoria]) pc[r.categoria]={total:0,icon:r.icon}; pc[r.categoria].total+=parseFloat(r.importe); });
+  const total = gs.reduce((s,r)=>s+parseFloat(r.importe),0);
+  el.innerHTML = Object.entries(pc).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>`
+    <div class="csi">
+      <div class="csi-h"><span>${d.icon} ${cat}</span><span>${fmt(d.total)}</span></div>
+      <div class="pb"><div class="pf" style="width:${Math.round(d.total/total*100)}%"></div></div>
+    </div>`).join('');
+}
+
+let tt;
+function toast(msg,type) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(type?' '+type:'');
+  clearTimeout(tt); tt=setTimeout(()=>el.className='toast',3000);
+}
+</script>
+</body>
+</html>

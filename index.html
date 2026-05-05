@@ -11,6 +11,7 @@
     --primary-dark: #5A4BD1;
     --income: #00B894;
     --expense: #E17055;
+    --invest: #0984E3;
     --bg: #F0EFF5;
     --text: #2D3436;
     --muted: #636E72;
@@ -26,17 +27,19 @@
   .balance-card { background: white; border-radius: 20px; padding: 1.25rem 1.5rem; margin: -2rem 1rem 0; box-shadow: 0 8px 30px rgba(108,92,231,0.15); position: relative; z-index: 10; }
   .balance-label { font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
   .balance-amount { font-size: 2.2rem; font-weight: 700; margin: 0.2rem 0 1rem; }
-  .balance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-  .balance-item { border-radius: 12px; padding: 0.75rem 1rem; }
+  .balance-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+  .balance-item { border-radius: 12px; padding: 0.65rem 0.75rem; }
   .balance-item.income { background: #E8F8F5; }
   .balance-item.expense { background: #FDF0EC; }
-  .balance-item label { font-size: 0.7rem; color: var(--muted); display: block; }
-  .balance-item span { font-size: 1.15rem; font-weight: 700; display: block; margin-top: 0.2rem; }
+  .balance-item.invest { background: #EBF5FB; }
+  .balance-item label { font-size: 0.65rem; color: var(--muted); display: block; }
+  .balance-item span { font-size: 1rem; font-weight: 700; display: block; margin-top: 0.2rem; }
   .balance-item.income span { color: var(--income); }
   .balance-item.expense span { color: var(--expense); }
+  .balance-item.invest span { color: var(--invest); }
 
   .tabs { display: flex; margin: 1.5rem 1rem 0; background: white; border-radius: 14px; padding: 4px; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .tab { flex: 1; padding: 0.65rem; border-radius: 10px; border: none; background: transparent; font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .tab { flex: 1; padding: 0.65rem; border-radius: 10px; border: none; background: transparent; font-size: 0.75rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
   .tab.active { background: var(--primary); color: white; }
 
   .section { padding: 1.25rem 1rem 0; display: none; }
@@ -49,10 +52,11 @@
   .dot.wait { background: #F9CA24; animation: pulse 1s infinite; }
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 
-  .tipo-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.25rem; }
-  .tipo-btn { padding: 0.8rem; border-radius: 12px; border: 2px solid var(--border); background: white; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--muted); }
+  .tipo-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .tipo-btn { padding: 0.7rem; border-radius: 12px; border: 2px solid var(--border); background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--muted); }
   .tipo-btn.ae { border-color: var(--expense); background: #FDF0EC; color: var(--expense); }
   .tipo-btn.ai { border-color: var(--income); background: #E8F8F5; color: var(--income); }
+  .tipo-btn.av { border-color: var(--invest); background: #EBF5FB; color: var(--invest); }
 
   .form-group { margin-bottom: 1.1rem; }
   .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -63,6 +67,7 @@
   .aw input { padding-left: 2rem; }
 
   .cats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+  .cats-grid.cols2 { grid-template-columns: repeat(2, 1fr); }
   .cat-btn { padding: 0.65rem 0.3rem; border-radius: 12px; border: 1.5px solid var(--border); background: white; text-align: center; cursor: pointer; }
   .cat-btn .icon { font-size: 1.3rem; display: block; }
   .cat-btn .name { font-size: 0.62rem; color: var(--muted); display: block; margin-top: 0.2rem; }
@@ -78,12 +83,14 @@
   .ri { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
   .ri.gasto { background: #FDF0EC; }
   .ri.ingreso { background: #E8F8F5; }
+  .ri.inversion { background: #EBF5FB; }
   .rinfo { flex: 1; min-width: 0; }
   .rinfo h4 { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rinfo p { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
   .ramount { font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
   .ramount.gasto { color: var(--expense); }
   .ramount.ingreso { color: var(--income); }
+  .ramount.inversion { color: var(--invest); }
 
   .btn-delete { width: 30px; height: 30px; border-radius: 50%; border: none; background: #FDF0EC; color: var(--expense); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .btn-delete:active { background: var(--expense); color: white; }
@@ -100,9 +107,15 @@
   .csi { background: white; border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; }
   .csi-h { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
   .csi-h span:first-child { font-size: 0.88rem; font-weight: 600; }
-  .csi-h span:last-child { font-size: 0.88rem; font-weight: 700; color: var(--expense); }
+  .csi-h span:last-child { font-size: 0.88rem; font-weight: 700; }
+  .csi-h span:last-child.exp { color: var(--expense); }
+  .csi-h span:last-child.inv { color: var(--invest); }
   .pb { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .pf { height: 100%; background: var(--primary); border-radius: 3px; }
+  .pf { height: 100%; border-radius: 3px; }
+  .pf.gasto { background: var(--expense); }
+  .pf.inversion { background: var(--invest); }
+
+  .resumen-titulo { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 1.25rem 0 0.5rem; }
 
   .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
   .empty .icon { font-size: 3rem; margin-bottom: 0.75rem; }
@@ -126,6 +139,7 @@
   <div class="balance-row">
     <div class="balance-item income"><label>Ingresos</label><span id="ingresos">0,00 €</span></div>
     <div class="balance-item expense"><label>Gastos</label><span id="gastos">0,00 €</span></div>
+    <div class="balance-item invest"><label>Inversiones</label><span id="inversiones">0,00 €</span></div>
   </div>
 </div>
 
@@ -135,11 +149,13 @@
   <button class="tab" onclick="showTab('resumen',this)">Resumen</button>
 </div>
 
+<!-- TAB AGREGAR -->
 <div class="section active" id="tab-agregar">
   <div class="status-bar"><div class="dot wait" id="sdot"></div><span id="stxt">Conectando con Google Sheets...</span></div>
   <div class="tipo-toggle">
     <button class="tipo-btn ae" id="bt-g" onclick="setTipo('gasto')">Gasto</button>
     <button class="tipo-btn" id="bt-i" onclick="setTipo('ingreso')">Ingreso</button>
+    <button class="tipo-btn" id="bt-v" onclick="setTipo('inversion')">Inversión</button>
   </div>
   <div class="form-group">
     <label>Importe (€)</label>
@@ -156,15 +172,18 @@
   <button class="btn btn-primary" id="btn-save" onclick="guardar()">Guardar registro</button>
 </div>
 
+<!-- TAB HISTORIAL -->
 <div class="section" id="tab-historial">
   <button class="btn btn-secondary" onclick="cargar()" style="margin-bottom:1rem;">🔄 Actualizar desde Sheets</button>
   <div id="hist"></div>
 </div>
 
+<!-- TAB RESUMEN -->
 <div class="section" id="tab-resumen">
   <div id="resumen"></div>
 </div>
 
+<!-- MODAL BORRAR -->
 <div class="modal-overlay" id="modal" style="display:none;">
   <div class="modal">
     <h3>¿Eliminar registro?</h3>
@@ -183,28 +202,33 @@ const API = 'https://script.google.com/macros/s/AKfycbyGDMywwkZGHsmdod7jSlMZjqZg
 const KEY = 'MI CLAVE SECRETA PRUEBA API GASTOS 26';
 
 const CATS_GASTO = [
-  {id:'restaurantes', icon:'🍽️', name:'Restaurantes'},
-  {id:'viajes',       icon:'✈️', name:'Viajes'},
-  {id:'gasolina',     icon:'⛽', name:'Gasolina'},
-  {id:'salud',        icon:'🏥', name:'Salud'},
+  {id:'restaurantes',    icon:'🍽️', name:'Restaurantes'},
+  {id:'viajes',          icon:'✈️', name:'Viajes'},
+  {id:'gasolina',        icon:'⛽', name:'Gasolina'},
+  {id:'salud',           icon:'🏥', name:'Salud'},
   {id:'entretenimiento', icon:'🎬', name:'Entretenimiento'},
-  {id:'belleza',      icon:'💄', name:'Belleza'},
-  {id:'ropa',         icon:'👕', name:'Ropa'},
-  {id:'tabaco',       icon:'🚬', name:'Tabaco'},
-  {id:'supermercado', icon:'🛒', name:'Supermercado'},
-  {id:'hogar',        icon:'🏠', name:'Hogar'},
-  {id:'suscripciones',icon:'📱', name:'Suscripciones'},
-  {id:'otros',        icon:'💡', name:'Otros'},
+  {id:'belleza',         icon:'💄', name:'Belleza'},
+  {id:'ropa',            icon:'👕', name:'Ropa'},
+  {id:'tabaco',          icon:'🚬', name:'Tabaco'},
+  {id:'supermercado',    icon:'🛒', name:'Supermercado'},
+  {id:'hogar',           icon:'🏠', name:'Hogar'},
+  {id:'suscripciones',   icon:'📱', name:'Suscripciones'},
+  {id:'otros',           icon:'💡', name:'Otros'},
 ];
 
 const CATS_INGRESO = [
-  {id:'trabajo',  icon:'💼', name:'Trabajo'},
-  {id:'vinted',   icon:'👗', name:'Vinted'},
-  {id:'regalos',  icon:'🎁', name:'Regalos'},
-  {id:'otros_ing',icon:'💰', name:'Otros'},
+  {id:'trabajo',   icon:'💼', name:'Trabajo'},
+  {id:'vinted',    icon:'👗', name:'Vinted'},
+  {id:'regalos',   icon:'🎁', name:'Regalos'},
+  {id:'otros_ing', icon:'💰', name:'Otros'},
 ];
 
-let tipo = 'gasto', cat = '', registros = JSON.parse(localStorage.getItem('gv4')||'[]');
+const CATS_INVERSION = [
+  {id:'trade_republic', icon:'📈', name:'Trade Republic'},
+  {id:'indexa',         icon:'📊', name:'Indexa Capital'},
+];
+
+let tipo = 'gasto', cat = '', registros = JSON.parse(localStorage.getItem('gv5')||'[]');
 let pendienteBorrar = null;
 
 document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -216,10 +240,19 @@ function status(t, msg) {
 }
 
 function fmt(n) { return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(n); }
-function getCats() { return tipo === 'gasto' ? CATS_GASTO : CATS_INGRESO; }
+
+function getCats() {
+  if (tipo === 'gasto') return CATS_GASTO;
+  if (tipo === 'ingreso') return CATS_INGRESO;
+  return CATS_INVERSION;
+}
 
 function renderCats() {
-  document.getElementById('cats').innerHTML = getCats().map(c=>`
+  const cats = getCats();
+  const esInversion = tipo === 'inversion';
+  const grid = document.getElementById('cats');
+  grid.className = 'cats-grid' + (esInversion ? ' cols2' : '');
+  grid.innerHTML = cats.map(c=>`
     <button class="cat-btn ${cat===c.id?'sel':''}" onclick="selCat('${c.id}')">
       <span class="icon">${c.icon}</span><span class="name">${c.name}</span>
     </button>`).join('');
@@ -231,6 +264,7 @@ function setTipo(t) {
   tipo = t; cat = '';
   document.getElementById('bt-g').className = 'tipo-btn' + (t==='gasto'?' ae':'');
   document.getElementById('bt-i').className = 'tipo-btn' + (t==='ingreso'?' ai':'');
+  document.getElementById('bt-v').className = 'tipo-btn' + (t==='inversion'?' av':'');
   renderCats();
 }
 
@@ -248,9 +282,11 @@ function actualizarBalance() {
   const mes = registros.filter(r=>{const d=new Date(r.fecha);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();});
   const g = mes.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+parseFloat(r.importe),0);
   const i = mes.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+parseFloat(r.importe),0);
-  const b = i - g;
+  const v = mes.filter(r=>r.tipo==='inversion').reduce((s,r)=>s+parseFloat(r.importe),0);
+  const b = i - g - v;
   document.getElementById('gastos').textContent = fmt(g);
   document.getElementById('ingresos').textContent = fmt(i);
+  document.getElementById('inversiones').textContent = fmt(v);
   const el = document.getElementById('balance');
   el.textContent = fmt(b);
   el.style.color = b>=0?'#00B894':'#E17055';
@@ -276,8 +312,8 @@ async function guardar() {
   try {
     const res = await api({action:'create', tipo, categoria:c.name, descripcion:desc||c.name, importe, fecha:new Date().toISOString().split('T')[0]});
     if (res.success) {
-      registros.unshift({id:res.id||Date.now(), fecha:new Date().toISOString(), tipo, categoria:c.name, icon:c.icon, descripcion:desc||c.name, importe});
-      localStorage.setItem('gv4', JSON.stringify(registros));
+      registros.unshift({id:String(res.id), fecha:new Date().toISOString(), tipo, categoria:c.name, icon:c.icon, descripcion:desc||c.name, importe});
+      localStorage.setItem('gv5', JSON.stringify(registros));
       actualizarBalance();
       status('ok','✓ Conectado a Google Sheets');
       toast('✓ Guardado en Google Sheets','ok');
@@ -297,15 +333,17 @@ async function cargar() {
   try {
     const res = await api({action:'read'});
     if (res.success && res.records) {
-      const todasCats = [...CATS_GASTO, ...CATS_INGRESO];
+      const todasCats = [...CATS_GASTO, ...CATS_INGRESO, ...CATS_INVERSION];
       registros = res.records.map(r=>({
-        id:r.ID, fecha:r.Fecha, tipo:r.Tipo,
-        categoria:r.Categoria,
-        icon:todasCats.find(c=>c.name===r.Categoria)?.icon||'💡',
-        descripcion:r.Descripcion,
-        importe:parseFloat(r.Importe)||0
+        id: String(r.ID),
+        fecha: r.Fecha,
+        tipo: r.Tipo,
+        categoria: r.Categoria,
+        icon: todasCats.find(c=>c.name===r.Categoria)?.icon||'💡',
+        descripcion: r.Descripcion,
+        importe: parseFloat(r.Importe)||0
       }));
-      localStorage.setItem('gv4', JSON.stringify(registros));
+      localStorage.setItem('gv5', JSON.stringify(registros));
       actualizarBalance();
       status('ok','✓ Conectado a Google Sheets');
       toast('✓ Datos cargados','ok');
@@ -317,7 +355,7 @@ async function cargar() {
 }
 
 function abrirModal(id, desc) {
-  pendienteBorrar = id;
+  pendienteBorrar = String(id);
   document.getElementById('modal-desc').textContent = `"${desc}" se eliminará también de Google Sheets.`;
   document.getElementById('modal').style.display = 'flex';
 }
@@ -332,10 +370,10 @@ async function confirmarBorrar() {
   cerrarModal();
   toast('Eliminando...','');
   try {
-    const res = await api({action:'delete', id:pendienteBorrar});
+    const res = await api({action:'delete', id: pendienteBorrar});
     if (res.success) {
       registros = registros.filter(r=>String(r.id)!==String(pendienteBorrar));
-      localStorage.setItem('gv4', JSON.stringify(registros));
+      localStorage.setItem('gv5', JSON.stringify(registros));
       actualizarBalance();
       renderHist();
       toast('✓ Registro eliminado','ok');
@@ -355,7 +393,7 @@ function renderHist() {
         <h4>${r.descripcion}</h4>
         <p>${r.categoria} · ${new Date(r.fecha).toLocaleDateString('es-ES')}</p>
       </div>
-      <div class="ramount ${r.tipo}">${r.tipo==='gasto'?'-':'+'}${fmt(r.importe)}</div>
+      <div class="ramount ${r.tipo}">${r.tipo==='gasto'?'-':r.tipo==='inversion'?'📈':'+'}${fmt(r.importe)}</div>
       <button class="btn-delete" onclick="abrirModal('${r.id}','${r.descripcion.replace(/'/g,"\\'")}')">🗑️</button>
     </div>`).join('');
 }
@@ -363,15 +401,39 @@ function renderHist() {
 function renderResumen() {
   const el = document.getElementById('resumen');
   const gs = registros.filter(r=>r.tipo==='gasto');
-  if (!gs.length) { el.innerHTML=`<div class="empty"><div class="icon">📊</div><p>No hay gastos todavía.</p></div>`; return; }
-  const pc={};
-  gs.forEach(r=>{ if(!pc[r.categoria]) pc[r.categoria]={total:0,icon:r.icon}; pc[r.categoria].total+=parseFloat(r.importe); });
-  const total = gs.reduce((s,r)=>s+parseFloat(r.importe),0);
-  el.innerHTML = Object.entries(pc).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>`
-    <div class="csi">
-      <div class="csi-h"><span>${d.icon} ${cat}</span><span>${fmt(d.total)}</span></div>
-      <div class="pb"><div class="pf" style="width:${Math.round(d.total/total*100)}%"></div></div>
-    </div>`).join('');
+  const vs = registros.filter(r=>r.tipo==='inversion');
+
+  let html = '';
+
+  if (gs.length) {
+    const pcG = {};
+    gs.forEach(r=>{ if(!pcG[r.categoria]) pcG[r.categoria]={total:0,icon:r.icon}; pcG[r.categoria].total+=parseFloat(r.importe); });
+    const totalG = gs.reduce((s,r)=>s+parseFloat(r.importe),0);
+    html += `<div class="resumen-titulo">💸 Gastos por categoría</div>`;
+    html += Object.entries(pcG).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>`
+      <div class="csi">
+        <div class="csi-h"><span>${d.icon} ${cat}</span><span class="exp">${fmt(d.total)}</span></div>
+        <div class="pb"><div class="pf gasto" style="width:${Math.round(d.total/totalG*100)}%"></div></div>
+      </div>`).join('');
+  }
+
+  if (vs.length) {
+    const pcV = {};
+    vs.forEach(r=>{ if(!pcV[r.categoria]) pcV[r.categoria]={total:0,icon:r.icon}; pcV[r.categoria].total+=parseFloat(r.importe); });
+    const totalV = vs.reduce((s,r)=>s+parseFloat(r.importe),0);
+    html += `<div class="resumen-titulo">📈 Inversiones</div>`;
+    html += Object.entries(pcV).sort((a,b)=>b[1].total-a[1].total).map(([cat,d])=>`
+      <div class="csi">
+        <div class="csi-h"><span>${d.icon} ${cat}</span><span class="inv">${fmt(d.total)}</span></div>
+        <div class="pb"><div class="pf inversion" style="width:${Math.round(d.total/totalV*100)}%"></div></div>
+      </div>`).join('');
+  }
+
+  if (!html) {
+    el.innerHTML = `<div class="empty"><div class="icon">📊</div><p>No hay datos todavía.</p></div>`;
+  } else {
+    el.innerHTML = html;
+  }
 }
 
 let tt;

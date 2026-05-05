@@ -149,7 +149,6 @@
   <button class="tab" onclick="showTab('resumen',this)">Resumen</button>
 </div>
 
-<!-- TAB AGREGAR -->
 <div class="section active" id="tab-agregar">
   <div class="status-bar"><div class="dot wait" id="sdot"></div><span id="stxt">Conectando con Google Sheets...</span></div>
   <div class="tipo-toggle">
@@ -172,18 +171,15 @@
   <button class="btn btn-primary" id="btn-save" onclick="guardar()">Guardar registro</button>
 </div>
 
-<!-- TAB HISTORIAL -->
 <div class="section" id="tab-historial">
   <button class="btn btn-secondary" onclick="cargar()" style="margin-bottom:1rem;">🔄 Actualizar desde Sheets</button>
   <div id="hist"></div>
 </div>
 
-<!-- TAB RESUMEN -->
 <div class="section" id="tab-resumen">
   <div id="resumen"></div>
 </div>
 
-<!-- MODAL BORRAR -->
 <div class="modal-overlay" id="modal" style="display:none;">
   <div class="modal">
     <h3>¿Eliminar registro?</h3>
@@ -234,6 +230,15 @@ let pendienteBorrar = null;
 document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 renderCats(); actualizarBalance(); cargar();
 
+// Delegación de eventos para el botón borrar — evita problemas con caracteres especiales
+document.getElementById('hist').addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-delete');
+  if (!btn) return;
+  const id = btn.getAttribute('data-id');
+  const desc = btn.getAttribute('data-desc');
+  abrirModal(id, desc);
+});
+
 function status(t, msg) {
   document.getElementById('sdot').className = 'dot ' + t;
   document.getElementById('stxt').textContent = msg;
@@ -249,9 +254,8 @@ function getCats() {
 
 function renderCats() {
   const cats = getCats();
-  const esInversion = tipo === 'inversion';
   const grid = document.getElementById('cats');
-  grid.className = 'cats-grid' + (esInversion ? ' cols2' : '');
+  grid.className = 'cats-grid' + (tipo === 'inversion' ? ' cols2' : '');
   grid.innerHTML = cats.map(c=>`
     <button class="cat-btn ${cat===c.id?'sel':''}" onclick="selCat('${c.id}')">
       <span class="icon">${c.icon}</span><span class="name">${c.name}</span>
@@ -292,7 +296,7 @@ function actualizarBalance() {
   el.style.color = b>=0?'#00B894':'#E17055';
 }
 
-async function api(params) {
+async function apiCall(params) {
   const url = new URL(API);
   url.searchParams.set('api_key', KEY);
   Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
@@ -310,7 +314,7 @@ async function guardar() {
   btn.disabled = true; btn.textContent = 'Guardando...';
   status('wait','Enviando a Google Sheets...');
   try {
-    const res = await api({action:'create', tipo, categoria:c.name, descripcion:desc||c.name, importe, fecha:new Date().toISOString().split('T')[0]});
+    const res = await apiCall({action:'create', tipo, categoria:c.name, descripcion:desc||c.name, importe, fecha:new Date().toISOString().split('T')[0]});
     if (res.success) {
       registros.unshift({id:String(res.id), fecha:new Date().toISOString(), tipo, categoria:c.name, icon:c.icon, descripcion:desc||c.name, importe});
       localStorage.setItem('gv5', JSON.stringify(registros));
@@ -331,7 +335,7 @@ async function guardar() {
 async function cargar() {
   status('wait','Cargando datos...');
   try {
-    const res = await api({action:'read'});
+    const res = await apiCall({action:'read'});
     if (res.success && res.records) {
       const todasCats = [...CATS_GASTO, ...CATS_INGRESO, ...CATS_INVERSION];
       registros = res.records.map(r=>({
@@ -356,7 +360,7 @@ async function cargar() {
 
 function abrirModal(id, desc) {
   pendienteBorrar = String(id);
-  document.getElementById('modal-desc').textContent = `"${desc}" se eliminará también de Google Sheets.`;
+  document.getElementById('modal-desc').textContent = '"' + desc + '" se eliminará también de Google Sheets.';
   document.getElementById('modal').style.display = 'flex';
 }
 
@@ -367,25 +371,31 @@ function cerrarModal() {
 
 async function confirmarBorrar() {
   if (!pendienteBorrar) return;
+  const idABorrar = pendienteBorrar;
   cerrarModal();
   toast('Eliminando...','');
   try {
-    const res = await api({action:'delete', id: pendienteBorrar});
+    const res = await apiCall({action:'delete', id: idABorrar});
     if (res.success) {
-      registros = registros.filter(r=>String(r.id)!==String(pendienteBorrar));
+      registros = registros.filter(r=>String(r.id)!==String(idABorrar));
       localStorage.setItem('gv5', JSON.stringify(registros));
       actualizarBalance();
       renderHist();
       toast('✓ Registro eliminado','ok');
-    } else throw new Error(res.error);
+    } else {
+      toast('Error: ' + res.error,'err');
+    }
   } catch(e) {
-    toast('Error al eliminar','err');
+    toast('Error al eliminar: ' + e.message,'err');
   }
 }
 
 function renderHist() {
   const el = document.getElementById('hist');
-  if (!registros.length) { el.innerHTML=`<div class="empty"><div class="icon">📋</div><p>Aún no hay registros.</p></div>`; return; }
+  if (!registros.length) {
+    el.innerHTML=`<div class="empty"><div class="icon">📋</div><p>Aún no hay registros.</p></div>`;
+    return;
+  }
   el.innerHTML = registros.map(r=>`
     <div class="record-item">
       <div class="ri ${r.tipo}">${r.icon||'💸'}</div>
@@ -394,7 +404,7 @@ function renderHist() {
         <p>${r.categoria} · ${new Date(r.fecha).toLocaleDateString('es-ES')}</p>
       </div>
       <div class="ramount ${r.tipo}">${r.tipo==='gasto'?'-':r.tipo==='inversion'?'📈':'+'}${fmt(r.importe)}</div>
-      <button class="btn-delete" onclick="abrirModal('${r.id}','${r.descripcion.replace(/'/g,"\\'")}')">🗑️</button>
+      <button class="btn-delete" data-id="${r.id}" data-desc="${r.descripcion}">🗑️</button>
     </div>`).join('');
 }
 
@@ -402,9 +412,7 @@ function renderResumen() {
   const el = document.getElementById('resumen');
   const gs = registros.filter(r=>r.tipo==='gasto');
   const vs = registros.filter(r=>r.tipo==='inversion');
-
   let html = '';
-
   if (gs.length) {
     const pcG = {};
     gs.forEach(r=>{ if(!pcG[r.categoria]) pcG[r.categoria]={total:0,icon:r.icon}; pcG[r.categoria].total+=parseFloat(r.importe); });
@@ -416,7 +424,6 @@ function renderResumen() {
         <div class="pb"><div class="pf gasto" style="width:${Math.round(d.total/totalG*100)}%"></div></div>
       </div>`).join('');
   }
-
   if (vs.length) {
     const pcV = {};
     vs.forEach(r=>{ if(!pcV[r.categoria]) pcV[r.categoria]={total:0,icon:r.icon}; pcV[r.categoria].total+=parseFloat(r.importe); });
@@ -428,12 +435,7 @@ function renderResumen() {
         <div class="pb"><div class="pf inversion" style="width:${Math.round(d.total/totalV*100)}%"></div></div>
       </div>`).join('');
   }
-
-  if (!html) {
-    el.innerHTML = `<div class="empty"><div class="icon">📊</div><p>No hay datos todavía.</p></div>`;
-  } else {
-    el.innerHTML = html;
-  }
+  el.innerHTML = html || `<div class="empty"><div class="icon">📊</div><p>No hay datos todavía.</p></div>`;
 }
 
 let tt;

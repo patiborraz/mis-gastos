@@ -74,7 +74,8 @@
   .btn-secondary { background: var(--muted); }
   .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  .record-item { background: white; border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.85rem; }
+  /* HISTORIAL */
+  .record-item { background: white; border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.85rem; position: relative; }
   .ri { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
   .ri.gasto { background: #FDF0EC; }
   .ri.ingreso { background: #E8F8F5; }
@@ -85,6 +86,21 @@
   .ramount.gasto { color: var(--expense); }
   .ramount.ingreso { color: var(--income); }
 
+  /* BOTÓN BORRAR */
+  .btn-delete { width: 30px; height: 30px; border-radius: 50%; border: none; background: #FDF0EC; color: var(--expense); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+  .btn-delete:active { background: var(--expense); color: white; }
+
+  /* MODAL CONFIRMACIÓN */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .modal { background: white; border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 320px; text-align: center; }
+  .modal h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .modal p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .modal-btns button { padding: 0.8rem; border-radius: 12px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+  .btn-cancel { background: var(--border); color: var(--muted); }
+  .btn-confirm-del { background: var(--expense); color: white; }
+
+  /* RESUMEN */
   .csi { background: white; border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; }
   .csi-h { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
   .csi-h span:first-child { font-size: 0.88rem; font-weight: 600; }
@@ -123,6 +139,7 @@
   <button class="tab" onclick="showTab('resumen',this)">Resumen</button>
 </div>
 
+<!-- TAB AGREGAR -->
 <div class="section active" id="tab-agregar">
   <div class="status-bar"><div class="dot wait" id="sdot"></div><span id="stxt">Conectando con Google Sheets...</span></div>
   <div class="tipo-toggle">
@@ -144,13 +161,27 @@
   <button class="btn btn-primary" id="btn-save" onclick="guardar()">Guardar registro</button>
 </div>
 
+<!-- TAB HISTORIAL -->
 <div class="section" id="tab-historial">
   <button class="btn btn-secondary" onclick="cargar()" style="margin-bottom:1rem;">🔄 Actualizar desde Sheets</button>
   <div id="hist"></div>
 </div>
 
+<!-- TAB RESUMEN -->
 <div class="section" id="tab-resumen">
   <div id="resumen"></div>
+</div>
+
+<!-- MODAL BORRAR -->
+<div class="modal-overlay" id="modal" style="display:none;">
+  <div class="modal">
+    <h3>¿Eliminar registro?</h3>
+    <p id="modal-desc">Este registro se eliminará también de Google Sheets.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-confirm-del" onclick="confirmarBorrar()">Eliminar</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -159,22 +190,30 @@
 const API = 'https://script.google.com/macros/s/AKfycbwBiB1ABtwE2tmP9NkZfGltyZo86HIVryZhwO4tOSS6yflMb_NBlwCItmoAPmPPm_ItMg/exec';
 const KEY = 'MI CLAVE SECRETA PRUEBA API GASTOS 26';
 
-const CATS = [
-  {id:'restaurantes',icon:'🍽️',name:'Restaurantes'},
-  {id:'viajes',icon:'✈️',name:'Viajes'},
-  {id:'gasolina',icon:'⛽',name:'Gasolina'},
-  {id:'salud',icon:'🏥',name:'Salud'},
-  {id:'entretenimiento',icon:'🎬',name:'Entretenimiento'},
-  {id:'belleza',icon:'💄',name:'Belleza'},
-  {id:'ropa',icon:'👕',name:'Ropa'},
-  {id:'tabaco',icon:'🚬',name:'Tabaco'},
-  {id:'supermercado',icon:'🛒',name:'Supermercado'},
-  {id:'hogar',icon:'🏠',name:'Hogar'},
-  {id:'suscripciones',icon:'📱',name:'Suscripciones'},
-  {id:'otros',icon:'💡',name:'Otros'},
+const CATS_GASTO = [
+  {id:'restaurantes', icon:'🍽️', name:'Restaurantes'},
+  {id:'viajes',       icon:'✈️', name:'Viajes'},
+  {id:'gasolina',     icon:'⛽', name:'Gasolina'},
+  {id:'salud',        icon:'🏥', name:'Salud'},
+  {id:'entretenimiento', icon:'🎬', name:'Entretenimiento'},
+  {id:'belleza',      icon:'💄', name:'Belleza'},
+  {id:'ropa',         icon:'👕', name:'Ropa'},
+  {id:'tabaco',       icon:'🚬', name:'Tabaco'},
+  {id:'supermercado', icon:'🛒', name:'Supermercado'},
+  {id:'hogar',        icon:'🏠', name:'Hogar'},
+  {id:'suscripciones',icon:'📱', name:'Suscripciones'},
+  {id:'otros',        icon:'💡', name:'Otros'},
 ];
 
-let tipo = 'gasto', cat = '', registros = JSON.parse(localStorage.getItem('gv3')||'[]');
+const CATS_INGRESO = [
+  {id:'trabajo',  icon:'💼', name:'Trabajo'},
+  {id:'vinted',   icon:'👗', name:'Vinted'},
+  {id:'regalos',  icon:'🎁', name:'Regalos'},
+  {id:'otros_ing',icon:'💰', name:'Otros'},
+];
+
+let tipo = 'gasto', cat = '', registros = JSON.parse(localStorage.getItem('gv4')||'[]');
+let pendienteBorrar = null;
 
 document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 renderCats(); actualizarBalance(); cargar();
@@ -186,8 +225,10 @@ function status(t, msg) {
 
 function fmt(n) { return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(n); }
 
+function getCats() { return tipo === 'gasto' ? CATS_GASTO : CATS_INGRESO; }
+
 function renderCats() {
-  document.getElementById('cats').innerHTML = CATS.map(c=>`
+  document.getElementById('cats').innerHTML = getCats().map(c=>`
     <button class="cat-btn ${cat===c.id?'sel':''}" onclick="selCat('${c.id}')">
       <span class="icon">${c.icon}</span><span class="name">${c.name}</span>
     </button>`).join('');
@@ -196,10 +237,10 @@ function renderCats() {
 function selCat(id) { cat = id; renderCats(); }
 
 function setTipo(t) {
-  tipo = t;
+  tipo = t; cat = '';
   document.getElementById('bt-g').className = 'tipo-btn' + (t==='gasto'?' ae':'');
   document.getElementById('bt-i').className = 'tipo-btn' + (t==='ingreso'?' ai':'');
-  document.getElementById('grp-cat').style.display = t==='gasto'?'block':'none';
+  renderCats();
 }
 
 function showTab(id, el) {
@@ -236,16 +277,16 @@ async function guardar() {
   const importe = parseFloat(document.getElementById('importe').value);
   const desc = document.getElementById('desc').value.trim();
   if (!importe || importe<=0) return toast('Introduce un importe válido','err');
-  if (tipo==='gasto' && !cat) return toast('Selecciona una categoría','err');
-  const c = CATS.find(x=>x.id===cat);
+  if (!cat) return toast('Selecciona una categoría','err');
+  const c = getCats().find(x=>x.id===cat);
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = 'Guardando...';
   status('wait','Enviando a Google Sheets...');
   try {
-    const res = await api({action:'create', tipo, categoria: c?c.name:'Ingreso', descripcion: desc||(c?c.name:'Ingreso'), importe, fecha: new Date().toISOString().split('T')[0]});
+    const res = await api({action:'create', tipo, categoria: c.name, descripcion: desc||c.name, importe, fecha: new Date().toISOString().split('T')[0]});
     if (res.success) {
-      registros.unshift({id:res.id||Date.now(), fecha:new Date().toISOString(), tipo, categoria:c?c.name:'Ingreso', icon:c?c.icon:'💰', descripcion:desc||(c?c.name:'Ingreso'), importe});
-      localStorage.setItem('gv3', JSON.stringify(registros));
+      registros.unshift({id:res.id||Date.now(), fecha:new Date().toISOString(), tipo, categoria:c.name, icon:c.icon, descripcion:desc||c.name, importe});
+      localStorage.setItem('gv4', JSON.stringify(registros));
       actualizarBalance();
       status('ok','✓ Conectado a Google Sheets');
       toast('✓ Guardado en Google Sheets','ok');
@@ -255,7 +296,7 @@ async function guardar() {
     } else throw new Error(res.error);
   } catch(e) {
     status('err','Error de conexión con Sheets');
-    toast('Error: '+e.message,'err');
+    toast('Error al guardar','err');
   }
   btn.disabled=false; btn.textContent='Guardar registro';
 }
@@ -265,20 +306,54 @@ async function cargar() {
   try {
     const res = await api({action:'read'});
     if (res.success && res.records) {
-      registros = res.records.map(r=>({
-        id:r.ID, fecha:r.Fecha, tipo:r.Tipo,
-        categoria:r.Categoria,
-        icon: CATS.find(c=>c.name===r.Categoria)?.icon||'💡',
-        descripcion:r.Descripcion,
-        importe:parseFloat(r.Importe)||0
-      }));
-      localStorage.setItem('gv3', JSON.stringify(registros));
+      registros = res.records.map(r=>{
+        const todasCats = [...CATS_GASTO, ...CATS_INGRESO];
+        return {
+          id:r.ID, fecha:r.Fecha, tipo:r.Tipo,
+          categoria:r.Categoria,
+          icon: todasCats.find(c=>c.name===r.Categoria)?.icon||'💡',
+          descripcion:r.Descripcion,
+          importe:parseFloat(r.Importe)||0
+        };
+      });
+      localStorage.setItem('gv4', JSON.stringify(registros));
       actualizarBalance();
       status('ok','✓ Conectado a Google Sheets');
       toast('✓ Datos cargados','ok');
+      renderHist();
     } else throw new Error(res.error);
   } catch(e) {
     status('err','Sin conexión — mostrando datos locales');
+  }
+}
+
+// BORRAR
+function abrirModal(id, desc) {
+  pendienteBorrar = id;
+  document.getElementById('modal-desc').textContent = `"${desc}" se eliminará también de Google Sheets.`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function cerrarModal() {
+  pendienteBorrar = null;
+  document.getElementById('modal').style.display = 'none';
+}
+
+async function confirmarBorrar() {
+  if (!pendienteBorrar) return;
+  cerrarModal();
+  toast('Eliminando...','');
+  try {
+    const res = await api({action:'delete', id: pendienteBorrar});
+    if (res.success) {
+      registros = registros.filter(r=>String(r.id)!==String(pendienteBorrar));
+      localStorage.setItem('gv4', JSON.stringify(registros));
+      actualizarBalance();
+      renderHist();
+      toast('✓ Registro eliminado','ok');
+    } else throw new Error(res.error);
+  } catch(e) {
+    toast('Error al eliminar','err');
   }
 }
 
@@ -288,8 +363,12 @@ function renderHist() {
   el.innerHTML = registros.map(r=>`
     <div class="record-item">
       <div class="ri ${r.tipo}">${r.icon||'💸'}</div>
-      <div class="rinfo"><h4>${r.descripcion}</h4><p>${r.categoria} · ${new Date(r.fecha).toLocaleDateString('es-ES')}</p></div>
+      <div class="rinfo">
+        <h4>${r.descripcion}</h4>
+        <p>${r.categoria} · ${new Date(r.fecha).toLocaleDateString('es-ES')}</p>
+      </div>
       <div class="ramount ${r.tipo}">${r.tipo==='gasto'?'-':'+'}${fmt(r.importe)}</div>
+      <button class="btn-delete" onclick="abrirModal('${r.id}','${r.descripcion.replace(/'/g,"\\'")}')">🗑️</button>
     </div>`).join('');
 }
 

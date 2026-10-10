@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Mis Gastos</title>
- <link rel="apple-touch-icon" href="icono.png">
+<link rel="apple-touch-icon" href="icono.png">
 <link rel="icon" type="image/png" href="icono.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mis Gastos">
@@ -285,9 +285,16 @@ function showTab(id, el) {
   if(id==='resumen') renderResumen();
 }
 
-function actualizarBalance() {
+function getMesActual() {
   const ahora = new Date();
-  const mes = registros.filter(r=>{const d=new Date(r.fecha);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();});
+  return registros.filter(r=>{
+    const d=new Date(r.fecha);
+    return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();
+  });
+}
+
+function actualizarBalance() {
+  const mes = getMesActual();
   const g = mes.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+parseFloat(r.importe),0);
   const i = mes.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+parseFloat(r.importe),0);
   const v = mes.filter(r=>r.tipo==='inversion').reduce((s,r)=>s+parseFloat(r.importe),0);
@@ -396,11 +403,12 @@ async function confirmarBorrar() {
 
 function renderHist() {
   const el = document.getElementById('hist');
-  if (!registros.length) {
-    el.innerHTML=`<div class="empty"><div class="icon">📋</div><p>Aún no hay registros.</p></div>`;
+  const mesRecs = getMesActual();
+  if (!mesRecs.length) {
+    el.innerHTML=`<div class="empty"><div class="icon">📋</div><p>No hay registros este mes.</p></div>`;
     return;
   }
-  el.innerHTML = registros.map(r=>`
+  el.innerHTML = mesRecs.map(r=>`
     <div class="record-item">
       <div class="ri ${r.tipo}">${r.icon||'💸'}</div>
       <div class="rinfo">
@@ -414,8 +422,9 @@ function renderHist() {
 
 function renderResumen() {
   const el = document.getElementById('resumen');
-  const gs = registros.filter(r=>r.tipo==='gasto');
-  const vs = registros.filter(r=>r.tipo==='inversion');
+  const mesRecs = getMesActual();
+  const gs = mesRecs.filter(r=>r.tipo==='gasto');
+  const vs = mesRecs.filter(r=>r.tipo==='inversion');
   let html = '';
   if (gs.length) {
     const pcG = {};
